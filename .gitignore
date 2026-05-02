@@ -1,0 +1,11 @@
+node_modules/
+.pnpm-store/
+.next/
+dist/
+build/
+.env
+.DS_Store
+*.log
+apps/api/node_modules/
+apps/web/node_modules/
+apps/web/.next/

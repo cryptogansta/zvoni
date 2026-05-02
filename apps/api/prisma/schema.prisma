@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+
+  ownedRooms   Room[]            @relation("RoomOwner")
+  participants RoomParticipant[]
+  chatMessages ChatMessage[]
+  preferences  DevicePreference?
+}
+
+model GuestSession {
+  id          String   @id @default(cuid())
+  displayName String
+  roomId      String
+  createdAt   DateTime @default(now())
+
+  room         Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participants RoomParticipant[]
+  chatMessages ChatMessage[]
+}
+
+model Room {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  ownerUserId String
+  title       String     @default("Без названия")
+  status      RoomStatus @default(ACTIVE)
+  createdAt   DateTime   @default(now())
+  endedAt     DateTime?
+
+  owner         User              @relation("RoomOwner", fields: [ownerUserId], references: [id])
+  participants  RoomParticipant[]
+  inviteLinks   InviteLink[]
+  chatMessages  ChatMessage[]
+  transcripts   MeetingTranscript[]
+  summaries     MeetingSummary[]
+  guestSessions GuestSession[]
+}
+
+enum RoomStatus {
+  ACTIVE
+  ENDED
+}
+
+model RoomParticipant {
+  id             String          @id @default(cuid())
+  roomId         String
+  userId         String?
+  guestSessionId String?
+  role           ParticipantRole @default(PARTICIPANT)
+  joinedAt       DateTime        @default(now())
+  leftAt         DateTime?
+
+  room         Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id])
+  guestSession GuestSession? @relation(fields: [guestSessionId], references: [id])
+}
+
+enum ParticipantRole {
+  HOST
+  PARTICIPANT
+}
+
+model InviteLink {
+  id        String    @id @default(cuid())
+  roomId    String
+  token     String    @unique
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id            String      @id @default(cuid())
+  roomId        String
+  senderUserId  String?
+  senderGuestId String?
+  text          String
+  type          MessageType @default(USER)
+  createdAt     DateTime    @default(now())
+
+  room        Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderUser  User?         @relation(fields: [senderUserId], references: [id])
+  senderGuest GuestSession? @relation(fields: [senderGuestId], references: [id])
+}
+
+enum MessageType {
+  USER
+  SYSTEM
+}
+
+model MeetingTranscript {
+  id        String           @id @default(cuid())
+  roomId    String
+  status    TranscriptStatus @default(PENDING)
+  text      String?
+  provider  String           @default("mock")
+  createdAt DateTime         @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+enum TranscriptStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+}
+
+model MeetingSummary {
+  id          String   @id @default(cuid())
+  roomId      String
+  summary     String?
+  decisions   String?
+  actionItems String?
+  questions   String?
+  createdAt   DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model DevicePreference {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  microphoneId String?
+  cameraId     String?
+  speakerId    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

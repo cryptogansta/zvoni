@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: zvoni_postgres
+    environment:
+      POSTGRES_DB: zvoni
+      POSTGRES_USER: zvoni
+      POSTGRES_PASSWORD: zvoni_dev_secret
+    ports:
+      - "5433:5432"
+    volumes:
+      - zvoni_postgres_data:/var/lib/postgresql/data
+    networks:
+      - zvoni_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: zvoni_redis
+    ports:
+      - "6380:6379"
+    networks:
+      - zvoni_network
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: zvoni_livekit
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50100-50200:50100-50200/udp"
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    networks:
+      - zvoni_network
+    restart: unless-stopped
+
+networks:
+  zvoni_network:
+    name: zvoni_network
+
+volumes:
+  zvoni_postgres_data:

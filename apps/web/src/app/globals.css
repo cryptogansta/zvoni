@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { color-scheme: dark; }
+  body {
+    @apply bg-bg text-text antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-surface; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-muted; }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold
+           transition-all duration-150 select-none disabled:opacity-40 disabled:cursor-not-allowed
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-bg hover:bg-accent-dim active:scale-95 shadow-glow-accent;
+  }
+  .btn-secondary {
+    @apply btn bg-surface-elevated text-text hover:bg-surface-hover border border-border active:scale-95;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-danger-dim active:scale-95 shadow-glow-danger;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-muted hover:text-text hover:bg-surface-elevated;
+  }
+  .btn-icon {
+    @apply btn w-12 h-12 rounded-2xl bg-surface-elevated hover:bg-surface-hover border border-border;
+  }
+  .btn-icon-active {
+    @apply btn-icon bg-accent/10 border-accent/40 text-accent;
+  }
+  .input {
+    @apply w-full bg-surface border border-border rounded-xl px-4 py-3 text-text
+           placeholder:text-muted focus:outline-none focus:border-accent/60 focus:ring-1
+           focus:ring-accent/30 transition-colors;
+  }
+  .card {
+    @apply bg-surface border border-border rounded-2xl p-6;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-green { @apply badge bg-accent/15 text-accent; }
+  .badge-red   { @apply badge bg-danger/15 text-danger; }
+  .badge-muted { @apply badge bg-surface-elevated text-muted; }
+}
+
+.glow-text-accent {
+  text-shadow: 0 0 30px rgba(182, 255, 59, 0.6);
+}
