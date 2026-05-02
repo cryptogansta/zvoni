@@ -1,5 +1,4 @@
 import 'dotenv/config'
-import { createServer } from 'http'
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
 import fastifyJwt from '@fastify/jwt'
@@ -15,8 +14,18 @@ import { createSocketServer } from './ws/socketHandler'
 const app = Fastify({ logger: { level: config.NODE_ENV === 'development' ? 'info' : 'warn' } })
 
 async function bootstrap() {
+  const allowedOrigins = [
+    config.FRONTEND_URL,
+    'http://localhost:3000',
+    'https://po-zvoni.ru',
+    'https://www.po-zvoni.ru',
+  ].filter(Boolean)
+
   await app.register(fastifyCors, {
-    origin: config.FRONTEND_URL,
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
+      cb(new Error('Not allowed by CORS'), false)
+    },
     credentials: true,
   })
 
@@ -40,12 +49,12 @@ async function bootstrap() {
 
   app.get('/api/health', async () => ({ ok: true, ts: new Date().toISOString() }))
 
-  const httpServer = createServer(app.server)
-  createSocketServer(httpServer)
-
   await redis.connect()
 
+  // Важно: app.listen() должен быть ДО createSocketServer,
+  // чтобы Socket.io правильно обернул request-листенеры Fastify
   await app.listen({ port: config.API_PORT, host: '0.0.0.0' })
+  createSocketServer(app.server)
   console.log(`🚀 API server running on port ${config.API_PORT}`)
 }
 

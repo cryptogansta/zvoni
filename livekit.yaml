@@ -4,8 +4,9 @@ rtc:
   tcp_port: 7881
   port_range_start: 50100
   port_range_end: 50200
-  use_external_ip: false
-  enable_loopback_candidate: true
+  # На VPS обязательно true — иначе ICE-кандидаты будут с приватным IP
+  # и WebRTC не подключится снаружи
+  use_external_ip: true
 
 keys:
   zvonikey: zvonisecret_change_in_production_min32chars

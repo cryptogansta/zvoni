@@ -24,12 +24,26 @@ interface TranscriptionStatusPayload {
 }
 
 export function createSocketServer(httpServer: HttpServer): SocketServer {
+  const allowedOrigins = [
+    config.FRONTEND_URL,
+    'http://localhost:3000',
+    'https://po-zvoni.ru',
+    'https://www.po-zvoni.ru',
+  ].filter(Boolean)
+
   const io = new SocketServer(httpServer, {
     cors: {
-      origin: config.FRONTEND_URL,
+      origin: (origin, cb) => {
+        if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
+        cb(new Error('Not allowed by CORS'))
+      },
       credentials: true,
     },
-    transports: ['websocket', 'polling'],
+    // polling сначала — надёжнее за nginx
+    transports: ['polling', 'websocket'],
+    // увеличенные таймауты для нестабильных соединений
+    pingTimeout: 30000,
+    pingInterval: 10000,
   })
 
   io.on('connection', (socket) => {
